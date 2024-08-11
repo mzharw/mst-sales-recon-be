@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import * as dotenv from 'dotenv';
+import { ProductOrmEntity } from './modules/product/infrastructure/persistence/product.orm-entity';
 
 dotenv.config();
 const isProd = process.env.NODE_ENV === 'production';
@@ -15,9 +16,9 @@ const dataSource = new DataSource({
   entities: [__dirname + '/**/*.entity{.ts,.js}', __dirname + '/**/*.orm-entity{.ts,.js}'],
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
   migrationsTableName: 'migration_table',
-  dropSchema: false,
-  logging: false,
-  logger: 'file',
+  // dropSchema: false,
+  // logging: false,
+  // logger: 'file',
   ssl: isProd,
 });
 

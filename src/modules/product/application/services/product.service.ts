@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ProductOrmEntity } from '../../infrastructure/persistence/product.orm-entity';
 import { CreateProductDto, UpdateProductDto } from '../dtos/product.dto';
 import { IProductRepository } from '../../domain/repositories/product.repository.interface';
@@ -36,7 +36,10 @@ export class ProductService {
   }
 
   async remove(id: number): Promise<void> {
+    const product = await this.productRepository.findById(id);
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
+    }
     await this.productRepository.remove(id);
-
   }
 }

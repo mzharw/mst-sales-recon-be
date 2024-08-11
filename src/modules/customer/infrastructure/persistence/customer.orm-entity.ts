@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { SalesDetailOrmEntity } from '../../../sales/infrastructure/persistence/sales-detail.orm-entity';
 
 @Entity('m_customers')
 export class CustomerOrmEntity {
@@ -13,4 +14,7 @@ export class CustomerOrmEntity {
 
   @Column({ length: 20 })
   telp: string;
+
+  @OneToMany(() => SalesDetailOrmEntity, customer => customer.sales)
+  sales: SalesDetailOrmEntity[];
 }
