@@ -1,6 +1,7 @@
 import { AggregateRoot } from '@nestjs/cqrs';
 import { SalesDetail } from './sales-detail.entity';
 import { SalesCode } from '../value-objects/sales-code.vo';
+import { Customer } from '../../../customer/domain/entities/customer.entity';
 
 export class Sales extends AggregateRoot {
   constructor(
@@ -9,40 +10,36 @@ export class Sales extends AggregateRoot {
     public readonly date: Date,
     public readonly customerId: number,
     public readonly shippingCost: number,
-    public readonly details: SalesDetail[],
     public subtotal: number,
     public discount: number,
     public totalPayment: number,
+    public readonly details?: SalesDetail[],
+    public readonly customers?: Customer,
   ) {
     super();
   }
 
   static create(
-    code: string,
+    code: SalesCode,
     customerId: number,
-    details: SalesDetail[],
+    date: Date,
     shippingCost: number,
+    discount: number,
+    details: SalesDetail[],
   ): Sales {
     const subtotal = details.reduce((sum, detail) => sum + detail.total, 0);
-    const discount = details.reduce((sum, detail) => sum + detail.discountValue, 0);
     const totalPayment = subtotal - discount + shippingCost;
 
     return new Sales(
       null,
-      new SalesCode(code),
-      new Date(),
+      code,
+      date,
       customerId,
       shippingCost,
-      details,
       subtotal,
       discount,
       totalPayment,
+      details,
     );
   }
-
-  // calculateTotals(): void {
-  //   this.subtotal = this.details.reduce((sum, detail) => sum + detail.total, 0);
-  //   this.discount = this.details.reduce((sum, detail) => sum + detail.discountValue, 0);
-  //   this.totalPayment = this.subtotal - this.discount + this.shippingCost;
-  // }
 }

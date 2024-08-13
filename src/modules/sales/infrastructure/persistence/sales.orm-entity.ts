@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { SalesDetailOrmEntity } from './sales-detail.orm-entity';
 import { CustomerOrmEntity } from '../../../customer/infrastructure/persistence/customer.orm-entity';
 
@@ -8,6 +8,7 @@ export class SalesOrmEntity {
   id: number;
 
   @Column({ length: 15 })
+  @Index({ unique: true })
   code: string;
 
   @Column('timestamp')
@@ -28,7 +29,7 @@ export class SalesOrmEntity {
   @Column('decimal', { precision: 18, scale: 2 })
   totalPayment: number;
 
-  @OneToMany(() => SalesDetailOrmEntity, detail => detail.sales)
+  @OneToMany(() => SalesDetailOrmEntity, detail => detail.sales, { cascade: true })
   details: SalesDetailOrmEntity[];
 
   @ManyToOne(() => CustomerOrmEntity, customers => customers.sales)

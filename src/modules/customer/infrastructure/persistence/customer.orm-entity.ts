@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { SalesDetailOrmEntity } from '../../../sales/infrastructure/persistence/sales-detail.orm-entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, Index } from 'typeorm';
+import { SalesOrmEntity } from '../../../sales/infrastructure/persistence/sales.orm-entity';
 
 @Entity('m_customers')
 export class CustomerOrmEntity {
@@ -7,6 +7,7 @@ export class CustomerOrmEntity {
   id: number;
 
   @Column({ length: 10 })
+  @Index({ unique: true })
   code: string;
 
   @Column({ length: 100 })
@@ -15,6 +16,6 @@ export class CustomerOrmEntity {
   @Column({ length: 20 })
   telp: string;
 
-  @OneToMany(() => SalesDetailOrmEntity, customer => customer.sales)
-  sales: SalesDetailOrmEntity[];
+  @OneToMany(() => SalesOrmEntity, customer => customer.customers)
+  sales?: SalesOrmEntity[];
 }

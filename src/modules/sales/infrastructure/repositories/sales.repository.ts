@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Between } from 'typeorm';
 import { ISalesRepository } from '../../domain/repositories/sales.repository.interface';
 import { Sales } from '../../domain/entities/sales.entity';
 import { SalesOrmEntity } from '../persistence/sales.orm-entity';
 import { SalesDetailOrmEntity } from '../persistence/sales-detail.orm-entity';
 import { SalesCode } from '../../domain/value-objects/sales-code.vo';
 import { SalesDetail } from '../../domain/entities/sales-detail.entity';
+import { SalesStatsValueDto } from '../../application/dtos/sales.dto';
 
 @Injectable()
 export class SalesRepository implements ISalesRepository {
@@ -15,7 +16,8 @@ export class SalesRepository implements ISalesRepository {
     private readonly salesRepository: Repository<SalesOrmEntity>,
     @InjectRepository(SalesDetailOrmEntity)
     private readonly salesDetailRepository: Repository<SalesDetailOrmEntity>,
-  ) {}
+  ) {
+  }
 
   async findById(id: number): Promise<Sales> {
     const salesOrm = await this.salesRepository.findOne({
@@ -32,7 +34,7 @@ export class SalesRepository implements ISalesRepository {
   }
 
   async findAll(): Promise<Sales[]> {
-    const salesOrmList = await this.salesRepository.find({ relations: ['details'] });
+    const salesOrmList = await this.salesRepository.find({ relations: ['details', 'customers'] });
     return salesOrmList.map(salesOrm => this.mapToDomain(salesOrm));
   }
 
@@ -42,6 +44,43 @@ export class SalesRepository implements ISalesRepository {
       relations: ['details'],
     });
     return this.mapToDomain(salesOrm);
+  }
+
+  private transformDate(date: Date, to: 'startOfDay' | 'endOfDay'): Date {
+    if (to === 'startOfDay') {
+      const startOfDay = new Date(date);
+      startOfDay.setUTCHours(0, 0, 0, 0);
+
+      return startOfDay;
+    }
+
+    if (to === 'endOfDay') {
+      const endOfDay = new Date(date);
+      endOfDay.setUTCHours(23, 59, 59, 999);
+
+      return endOfDay;
+    }
+
+  }
+
+  async getSalesStats(date: Date, toDate: Date): Promise<SalesStatsValueDto> {
+    const salesOrmList = await this.salesRepository.find({
+      relations: ['details', 'details.products', 'customers'],
+      where: { date: Between(date, toDate) },
+    });
+
+    return this.mapToSalesStats(salesOrmList);
+  }
+
+  async countSalesOnDate(date: Date, toDate?: Date): Promise<number> {
+    const startOfDay = this.transformDate(date, 'startOfDay');
+    const endOfDay = this.transformDate(date ?? toDate, 'endOfDay');
+
+    return await this.salesRepository.count({
+      where: {
+        date: Between(startOfDay, endOfDay),
+      },
+    });
   }
 
   private mapToDomain(salesOrm: SalesOrmEntity): Sales {
@@ -58,8 +97,8 @@ export class SalesRepository implements ISalesRepository {
           detailOrm.discountPercentage,
           detailOrm.discountValue,
           detailOrm.priceAfterDiscount,
-          detailOrm.total
-        )
+          detailOrm.total,
+        ),
     );
 
     return new Sales(
@@ -68,10 +107,11 @@ export class SalesRepository implements ISalesRepository {
       salesOrm.date,
       salesOrm.customerId,
       salesOrm.shippingCost,
-      details,
       salesOrm.subtotal,
       salesOrm.discount,
       salesOrm.totalPayment,
+      details,
+      salesOrm.customers,
     );
   }
 
@@ -88,7 +128,7 @@ export class SalesRepository implements ISalesRepository {
     salesOrm.details = sales.details.map(detail => {
       const detailOrm = new SalesDetailOrmEntity();
       detailOrm.id = detail.id;
-      detailOrm.salesId = detail.salesId;
+      detailOrm.salesId = sales.id;
       detailOrm.productId = detail.productId;
       detailOrm.listPrice = detail.listPrice;
       detailOrm.quantity = detail.quantity;
@@ -98,6 +138,27 @@ export class SalesRepository implements ISalesRepository {
       detailOrm.total = detail.total;
       return detailOrm;
     });
+
     return salesOrm;
+  }
+
+  private mapToSalesStats(sales: SalesOrmEntity[]) {
+    const salesStat = new SalesStatsValueDto();
+    let soldProducts = 0, totalSales = 0;
+    let customers = {};
+
+    salesStat.sales = sales.length;
+    for (const sale of sales) {
+      soldProducts += +sale.details.length;
+      totalSales += +sale.totalPayment;
+
+      if (!customers[sale.customerId]) customers[sale.customerId] = true;
+    }
+
+    salesStat.soldProducts = soldProducts;
+    salesStat.totalSales = totalSales;
+    salesStat.activeCustomer = Object.keys(customers)?.length ?? 0;
+
+    return salesStat;
   }
 }

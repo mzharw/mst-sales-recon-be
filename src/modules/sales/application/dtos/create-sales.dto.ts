@@ -8,6 +8,10 @@ class CreateSalesDetailDto {
 
   @IsNumber()
   @IsNotEmpty()
+  listPrice: number;
+
+  @IsNumber()
+  @IsNotEmpty()
   quantity: number;
 
   @IsNumber()
@@ -16,10 +20,6 @@ class CreateSalesDetailDto {
 }
 
 export class CreateSalesDto {
-  @IsString()
-  @IsNotEmpty()
-  code: string;
-
   @IsNumber()
   @IsNotEmpty()
   customerId: number;
@@ -27,6 +27,13 @@ export class CreateSalesDto {
   @IsNumber()
   @IsNotEmpty()
   shippingCost: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  discount: number;
+
+  @IsNotEmpty()
+  date: Date;
 
   @IsArray()
   @ValidateNested({ each: true })

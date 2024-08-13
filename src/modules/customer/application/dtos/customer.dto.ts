@@ -1,5 +1,12 @@
 import { IsString, IsNotEmpty, Length } from 'class-validator';
 
+export class CustomerDto {
+  id: number;
+  code: string;
+  name: string;
+  telp: string;
+}
+
 export class CreateCustomerDto {
   @IsString()
   @IsNotEmpty()

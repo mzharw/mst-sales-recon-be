@@ -37,5 +37,5 @@ export class SalesDetailOrmEntity {
 
   @ManyToOne(() => ProductOrmEntity, product => product.sales)
   @JoinColumn({ name: 'productId' })
-  products: ProductOrmEntity;
+  products?: ProductOrmEntity;
 }

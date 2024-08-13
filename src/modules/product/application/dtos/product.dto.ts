@@ -1,4 +1,12 @@
 import { IsString, IsNotEmpty, Length, IsNumber, Min } from 'class-validator';
+import { SalesDetailDto } from '../../../sales/application/dtos/sales.dto';
+
+export class ProductDto {
+  id: number;
+  code: string;
+  price: number;
+  name?: string;
+}
 
 export class CreateProductDto {
   @IsString()

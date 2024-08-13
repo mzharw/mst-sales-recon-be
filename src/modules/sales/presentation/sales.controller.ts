@@ -4,12 +4,14 @@ import { CreateSalesDto } from '../application/dtos/create-sales.dto';
 import { SalesDto } from '../application/dtos/sales.dto';
 import { CreateSalesCommand } from '../application/commands/create-sales.command';
 import { GetSalesListQuery } from '../application/queries/get-sales-list.query';
+import { SalesService } from '../application/services/sales.service';
 
 @Controller('sales')
 export class SalesController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
+    private readonly salesService: SalesService,
   ) {
   }
 
@@ -18,10 +20,17 @@ export class SalesController {
     return this.commandBus.execute(new CreateSalesCommand(createSalesDto));
   }
 
-  @Get(':id')
+  @Get(':id/view')
   async getSales(@Param('id') id: number): Promise<SalesDto> {
-    const { items } = await this.queryBus.execute(new GetSalesListQuery(1, 1, 'id', 'ASC'));
+    const query = new GetSalesListQuery(1, 1, 'id', 'ASC', { id: id }, true);
+    const { items } = await this.queryBus.execute(query);
+
     return items[0];
+  }
+
+  @Get('stats')
+  async getStats(){
+    return this.salesService.getStats();
   }
 
   @Get()

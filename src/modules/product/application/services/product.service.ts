@@ -21,7 +21,7 @@ export class ProductService {
     return this.productRepository.findAll();
   }
 
-  async findOne(id: number): Promise<ProductOrmEntity> {
+  async findOne(id: number): Promise<Product> {
     const product = await this.productRepository.findById(id);
     if (!product) {
       throw new NotFoundException(`Product with ID "${id}" not found`);

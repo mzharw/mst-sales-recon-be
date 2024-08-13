@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, Index } from 'typeorm';
 import { SalesDetailOrmEntity } from '../../../sales/infrastructure/persistence/sales-detail.orm-entity';
 
 @Entity('m_products')
@@ -7,6 +7,7 @@ export class ProductOrmEntity {
   id: number;
 
   @Column({ length: 10 })
+  @Index({ unique: true })
   code: string;
 
   @Column({ length: 100 })
@@ -16,5 +17,5 @@ export class ProductOrmEntity {
   price: number;
 
   @OneToMany(() => SalesDetailOrmEntity, sales => sales.products)
-  sales: SalesDetailOrmEntity[];
+  sales?: SalesDetailOrmEntity[];
 }
