@@ -4,7 +4,6 @@ export class CustomerDto {
   id: number;
   code: string;
   name: string;
-  telp: string;
 }
 
 export class CreateCustomerDto {
